@@ -3,7 +3,7 @@ import sys
 import fire
 import simplejson as json
 from decimal import Decimal
-from bakinreg.colored import PrinterJSON
+from bakers_registry.colored import PrinterJSON
 from pprint import pformat, pprint
 from pytezos import pytezos, RpcError
 from pytezos.michelson.converter import MichelineSchemaError

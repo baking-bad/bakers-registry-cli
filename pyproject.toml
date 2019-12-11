@@ -1,9 +1,17 @@
 [tool.poetry]
-name = "bakinreg"
+name = "bakers-registry"
 version = "0.1.0"
-description = "Ccommand line interface for the Tezos Bakers Registry"
-authors = ["Michael Zaikin <mz@baking-bad.org>"]
 license = "MIT"
+description = "Command line interface for the Tezos Bakers Registry"
+authors = ["Michael Zaikin <mz@baking-bad.org>"]
+readme = "README.md"
+repository = "https://github.com/baking-bad/bakinreg"
+keywords = ['tezos', 'crypto', 'blockchain', 'xtz']
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
@@ -11,6 +19,9 @@ pytezos = "^2.2.0"
 conseil = "*"
 
 [tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+bakers = 'bakers_registry:cli.main'
 
 [build-system]
 requires = ["poetry>=0.12"]
