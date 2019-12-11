@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "bakinreg"
+version = "0.1.0"
+description = "Ccommand line interface for the Tezos Bakers Registry"
+authors = ["Michael Zaikin <mz@baking-bad.org>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+pytezos = "^2.2.0"
+conseil = "*"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

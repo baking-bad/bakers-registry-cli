@@ -1,1 +1,2 @@
-# bakers-registry-cli
+# Bakers Registry client
+
