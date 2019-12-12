@@ -5,7 +5,7 @@ license = "MIT"
 description = "Command line interface for the Tezos Bakers Registry"
 authors = ["Michael Zaikin <mz@baking-bad.org>"]
 readme = "README.md"
-repository = "https://github.com/baking-bad/bakinreg"
+repository = "https://github.com/baking-bad/bakers-registry-cli"
 keywords = ['tezos', 'crypto', 'blockchain', 'xtz']
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -15,7 +15,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-pytezos = "^2.2.0"
+pytezos = "^2.2.1"
 conseil = "*"
 
 [tool.poetry.dev-dependencies]
