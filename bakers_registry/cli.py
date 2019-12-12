@@ -21,9 +21,25 @@ def info(data):
 
 
 class BakersRegistryCli:
+    """
+    Tezos Bakers Registry CLI
+
+    Welcome!
+    * Smart contract: https://better-call.dev/main/KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog
+    * Registry UI: https://tezit.github.io/baker-registry
+    * Registry FAQ: https://hackmd.io/DZyJU5HSThmGX8ER7tprXg
+    """
 
     def get(self, baker_address, output_file=None, raw=False,
             network='mainnet', registry_address='KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog'):
+        """
+        Get the current baker config
+        :param baker_address: tz-address
+        :param output_file: path to the file to store the data (optional)
+        :param raw: keep intermediate data representation (default is False)
+        :param network: Tezos network (default is mainnet)
+        :param registry_address: address of the registry contract (predefined)
+        """
         registry = pytezos.using(network).contract(registry_address)
         try:
             data = registry.big_map_get(baker_address)
@@ -41,6 +57,14 @@ class BakersRegistryCli:
 
     def set(self, baker_address, input_file, preview=False,
             network='mainnet', registry_address='KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog'):
+        """
+        Generate tezos-client command from the config file
+        :param baker_address: tz-address
+        :param input_file: path to the file with configuration (can contain any-level representation)
+        :param preview: print resulting config instead of command line (default is False)
+        :param network: Tezos network (default is mainnet)
+        :param registry_address: address of the registry contract (predefined)
+        """
         with open(input_file, 'r') as f:
             data = json.loads(f.read(), use_decimal=True)
 
@@ -57,6 +81,10 @@ class BakersRegistryCli:
                 print(cmd)
 
     def new(self, output_file=None):
+        """
+        Generates template config for a new baker
+        :param output_file: path to the file to store the data (optional)
+        """
         data = decode_info(encode_info({}))
         if output_file:
             with open(output_file, 'w+') as f:
@@ -66,6 +94,14 @@ class BakersRegistryCli:
 
     def all(self, output_file, since=None, raw=False,
             network='mainnet', registry_address='KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog'):
+        """
+        Get all recent updates of the registry and save to file
+        :param output_file: path to the file
+        :param since: set lower bound, can be level (int) or string "level:700000" "cycle:170"
+        :param raw: keep intermediate data representation (default is False)
+        :param network: Tezos network (default is mainnet)
+        :param registry_address: address of the registry contract (predefined)
+        """
         if network != 'mainnet':
             fail('Only mainnet is supported at the moment')
 
