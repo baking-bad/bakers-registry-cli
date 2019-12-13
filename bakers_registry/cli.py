@@ -49,6 +49,8 @@ class BakersRegistryCli:
         except RpcError as e:
             fail(next(iter(e.args)))
         else:
+            if not data:
+                fail('Not found')
             if output_file:
                 with open(output_file, 'w+') as f:
                     f.write(json.dumps(data, indent=4))
