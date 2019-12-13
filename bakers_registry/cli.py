@@ -6,8 +6,8 @@ from pytezos import pytezos, RpcError
 from pytezos.michelson.converter import MichelineSchemaError
 
 from bakers_registry.encoding import decode_info, encode_info
-from bakers_registry.colored import PrinterJSON
-from bakers_registry.core import get_updates
+from bakers_registry.colored import PrinterJSON, PrinterLog
+from bakers_registry.core import get_all_bakers, get_snapshot, get_unify_diff
 
 
 def fail(data):
@@ -40,15 +40,15 @@ class BakersRegistryCli:
         :param network: Tezos network (default is mainnet)
         :param registry_address: address of the registry contract (predefined)
         """
-        registry = pytezos.using(network).contract(registry_address)
         try:
-            data = registry.big_map_get(baker_address)
+            data = get_snapshot(
+                registry_address=registry_address,
+                bakers_addresses=[baker_address],
+                raw=raw,
+                network=network)
         except RpcError as e:
             fail(next(iter(e.args)))
         else:
-            if not raw:
-                data = decode_info(data)
-
             if output_file:
                 with open(output_file, 'w+') as f:
                     f.write(json.dumps(data, indent=4))
@@ -92,10 +92,26 @@ class BakersRegistryCli:
         else:
             info(data)
 
-    def all(self, output_file, since=None, raw=False,
+    def all(self, output_file, raw=False,
             network='mainnet', registry_address='KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog'):
         """
-        Get all recent updates of the registry and save to file
+        Get all bakers
+        :param output_file: path to the file
+        :param raw: keep intermediate data representation (default is False)
+        :param network: Tezos network (default is mainnet)
+        :param registry_address: address of the registry contract (predefined)
+        """
+        if network != 'mainnet':
+            fail('Only mainnet is supported at the moment')
+
+        data = get_all_bakers(registry_address, raw)
+        with open(output_file, 'w+') as f:
+            f.write(json.dumps(data, indent=4))
+
+    def log(self, output_file=None, since=None, raw=False,
+            network='mainnet', registry_address='KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog'):
+        """
+        Show registry changes, line by line
         :param output_file: path to the file
         :param since: set lower bound, can be level (int) or string "level:700000" "cycle:170"
         :param raw: keep intermediate data representation (default is False)
@@ -105,12 +121,15 @@ class BakersRegistryCli:
         if network != 'mainnet':
             fail('Only mainnet is supported at the moment')
 
-        data = get_updates(registry_address, since)
-        if not raw:
-            data = dict(map(lambda x: (x[0], decode_info(x[1])), data.items()))
-
-        with open(output_file, 'w+') as f:
-            f.write(json.dumps(data, indent=4))
+        log = get_unify_diff(
+            registry_address=registry_address,
+            since=since,
+            raw=raw)
+        if output_file:
+            with open(output_file, 'w+') as f:
+                f.write(json.dumps(log, indent=4))
+        else:
+            PrinterLog().print_log(log)
 
 
 def main():

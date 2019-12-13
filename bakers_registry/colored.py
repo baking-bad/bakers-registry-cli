@@ -117,3 +117,37 @@ class PrinterJSON:
             self.print_num(data)
         else:
             self.print_str(data)
+
+
+class PrinterLog(PrinterJSON):
+    termdic = ('{', '}')
+    termlst = ('[', ']')
+    onkey = False
+    ind = 0
+
+    def print_entry(self, entry, max_baker_length):
+        sys.stdout.write(str(entry['level']))
+        sys.stdout.write('  ')
+        self.cpr(entry['baker'].ljust(max_baker_length), 1)
+        sys.stdout.write('  ')
+
+        if entry['kind'] == 'create':
+            self.cpr('New Baker!', 1)
+        else:
+            self.simple_data = False
+            self.cpr(entry['key'], 6)
+            sys.stdout.write(': ')
+            self.print_data(entry['before'])
+            sys.stdout.write(' => ')
+            self.print_data(entry['after'])
+            self.simple_data = True
+
+        sys.stdout.write('\n')
+
+    def print_log(self, entries: list):
+        if entries:
+            max_baker_length = max(map(lambda x: len(x['baker']), entries))
+            for entry in entries:
+                self.print_entry(entry, max_baker_length)
+        else:
+            self.cpr('No events\n', 1)

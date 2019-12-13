@@ -117,3 +117,7 @@ def encode_info(data):
         'overDelegationThreshold': data.get('overDelegationThreshold', 100),
         'subtractRewardsFromUninvitedDelegation': data.get('subtractRewardsFromUninvitedDelegation', True)
     }
+
+
+def decode_snapshot(snapshot: dict):
+    return dict(map(lambda x: (x[0], decode_info(x[1])), snapshot.items()))
