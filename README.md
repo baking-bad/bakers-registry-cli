@@ -20,9 +20,7 @@ pip install bakers-registry
 * python 3.6+
 * pip
 
-## Usage
-
-### Get the current baker config
+## Get the current baker config
 
 ```bash
 bakers get BAKER_ADDRESS <flags>
@@ -96,7 +94,7 @@ bakers get BAKER_ADDRESS <flags>
 
 ```
 
-### Generate tezos-client command from the config file
+## Generate tezos-client command from the config file
 ```bash
 bakers set BAKER_ADDRESS INPUT_FILE <flags>
 ```
@@ -114,7 +112,7 @@ bakers set BAKER_ADDRESS INPUT_FILE <flags>
 transfer 0 from tz1NortRftucvAkD1J58L32EhSVrQEWJCEnB to KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog --entrypoint 'set_data' --arg 'Pair "tz1NortRftucvAkD1J58L32EhSVrQEWJCEnB" (Pair (Some (Pair (Pair (Pair 0x42616b65276e27526f6c6c73 True) 0x68747470733a2f2f62616b656e726f6c6c732e636f6d2f72656769737472792e6a736f6e) (Pair (Pair 9100 { "tz1Zrqm4TkJwqTxm5TiyVFh6taXG4Wrq7tko" }) (Pair (Pair (Pair 100000 True) (Pair 6 (Pair 1 0))) (Pair (Pair True 16383) (Pair 100 True)))))) None)'
 ```
 
-### Create default config
+## Create default config
 
 ```bash
 bakers new <flags>
@@ -123,7 +121,7 @@ bakers new <flags>
 #### Arguments
 * `--output_file=OUTPUT_FILE`   path to the file to store the data (optional)
 
-### Get all bakers
+## Get all bakers data
 
 ```bash
 bakers all OUTPUT_FILE <flags>
@@ -136,7 +134,7 @@ bakers all OUTPUT_FILE <flags>
 * `--network=NETWORK`   Tezos network (default is mainnet)
 * `--registry_address=REGISTRY_ADDRESS` address of the registry contract (predefined)
 
-### Get recent changes
+## Get recent changes
 
 ```bash
 bakers log <flags>
