@@ -22,31 +22,17 @@ pip install bakers-registry
 
 ## Usage
 
-### `bakers get` Get a particular baker
+### `bakers get` Get the current baker config
 
 ```bash
-NAME
-    bakers get - Get the current baker config
+bakers get BAKER_ADDRESS <flags>
+```
 
-SYNOPSIS
-    bakers get BAKER_ADDRESS <flags>
-
-DESCRIPTION
-    Get the current baker config
-
-POSITIONAL ARGUMENTS
-    BAKER_ADDRESS
-        tz-address
-
-FLAGS
-    --output_file=OUTPUT_FILE
-        path to the file to store the data (optional)
-    --raw=RAW
-        keep intermediate data representation (default is False)
-    --network=NETWORK
-        Tezos network (default is mainnet)
-    --registry_address=REGISTRY_ADDRESS
-        address of the registry contract (predefined)
+* `BAKER_ADDRESS`   tz-address
+* `--output_file=OUTPUT_FILE`   path to the file to store the data (optional)
+* `--raw=RAW`   keep intermediate data representation (default is False)
+* `--network=NETWORK`   Tezos network (default is mainnet)
+* `--registry_address=REGISTRY_ADDRESS` address of the registry contract (predefined)
 ```
 
 ##### Sample output
@@ -110,31 +96,16 @@ FLAGS
 
 ```
 
-### `bakers set` Generate cmdline for `tezos-client`
+### `bakers set` Generate tezos-client command from the config file
 ```bash
-NAME
-    bakers set - Generate tezos-client command from the config file
-
-SYNOPSIS
-    bakers set BAKER_ADDRESS INPUT_FILE <flags>
-
-DESCRIPTION
-    Generate tezos-client command from the config file
-
-POSITIONAL ARGUMENTS
-    BAKER_ADDRESS
-        tz-address
-    INPUT_FILE
-        path to the file with configuration (can contain any-level representation)
-
-FLAGS
-    --preview=PREVIEW
-        print resulting config instead of command line (default is False)
-    --network=NETWORK
-        Tezos network (default is mainnet)
-    --registry_address=REGISTRY_ADDRESS
-        address of the registry contract (predefined)
+bakers set BAKER_ADDRESS INPUT_FILE <flags>
 ```
+
+* `BAKER_ADDRESS`   tz-address
+* `INPUT_FILE`  path to the file with configuration (can contain any-level representation)
+* `--preview=PREVIEW`   print resulting config instead of command line (default is False)
+* `--network=NETWORK`   Tezos network (default is mainnet)
+* `--registry_address=REGISTRY_ADDRESS` address of the registry contract (predefined)
 
 ##### Sample output
 
@@ -145,73 +116,35 @@ transfer 0 from tz1NortRftucvAkD1J58L32EhSVrQEWJCEnB to KT1ChNsEFxwyCbJyWGSL3Kdj
 ### `bakers new` Create default config
 
 ```bash
-NAME
-    bakers new - Generates template config for a new baker
-
-SYNOPSIS
-    bakers new <flags>
-
-DESCRIPTION
-    Generates template config for a new baker
-
-FLAGS
-    --output_file=OUTPUT_FILE
-        path to the file to store the data (optional)
+bakers new <flags>
 ```
+
+* `--output_file=OUTPUT_FILE`   path to the file to store the data (optional)
 
 ### `bakers all` Get all bakers
 
 ```bash
-NAME
-    bakers all - Get all bakers
-
-SYNOPSIS
-    bakers all OUTPUT_FILE <flags>
-
-DESCRIPTION
-    Get all bakers
-
-POSITIONAL ARGUMENTS
-    OUTPUT_FILE
-        path to the file
-
-FLAGS
-    --raw=RAW
-        keep intermediate data representation (default is False)
-    --indexer=INDEXER
-        which indexer to use to retrieve operation levels [tzkt, tzstats, conseil]
-    --network=NETWORK
-        Tezos network (default is mainnet)
-    --registry_address=REGISTRY_ADDRESS
-        address of the registry contract (predefined)
+bakers all OUTPUT_FILE <flags>
 ```
+
+* `OUTPUT_FILE`   path to the file
+* `--raw=RAW`   keep intermediate data representation (default is False)
+* `--indexer=INDEXER`   which indexer to use to retrieve operation levels [tzkt, tzstats, conseil]
+* `--network=NETWORK`   Tezos network (default is mainnet)
+* `--registry_address=REGISTRY_ADDRESS` address of the registry contract (predefined)
 
 ### `bakers log` Get recent changes
 
 ```bash
-NAME
-    bakers log - Show registry changes, line by line
-
-SYNOPSIS
-    bakers log <flags>
-
-DESCRIPTION
-    Show registry changes, line by line
-
-FLAGS
-    --output_file=OUTPUT_FILE
-        path to the file
-    --since=SINCE
-        set lower bound, can be level (int) or string "level:700000" "cycle:170"
-    --raw=RAW
-        keep intermediate data representation (default is False)
-    --indexer=INDEXER
-        which indexer to use to retrieve operation levels [tzkt, tzstats, conseil]
-    --network=NETWORK
-        Tezos network (default is mainnet)
-    --registry_address=REGISTRY_ADDRESS
-        address of the registry contract (predefined)
+bakers log <flags>
 ```
+
+* `--output_file=OUTPUT_FILE`   path to the file
+* `--since=SINCE`   set lower bound, can be level (int) or string "level:700000" "cycle:170"
+* `--raw=RAW`   keep intermediate data representation (default is False)
+* `--indexer=INDEXER`   which indexer to use to retrieve operation levels [tzkt, tzstats, conseil]
+* `--network=NETWORK`   Tezos network (default is mainnet)
+* `--registry_address=REGISTRY_ADDRESS` address of the registry contract (predefined)
 
 ##### Sample output
 
