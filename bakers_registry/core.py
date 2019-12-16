@@ -202,7 +202,8 @@ def flat_list(list_of_lists):
 
 def get_unify_diff(registry_address, indexer='tzkt', since=None, raw=False) -> list:
     if since is None:
-        since = f'cycle:{pytezos.using("mainnet").shell.head.cycle() - 2}'
+        with yaspin(text=f"Getting current cycle..."):
+            since = f'cycle:{pytezos.using("mainnet").shell.head.cycle() - 2}'
 
     updates = get_updates(registry_address, indexer=indexer, since=since)
     if not updates:
@@ -243,7 +244,8 @@ def get_unify_diff(registry_address, indexer='tzkt', since=None, raw=False) -> l
                     log.append(dict(
                         level=level,
                         baker=baker,
-                        kind='create'
+                        kind='create',
+                        address=address
                     ))
 
                 snapshot.update(address=info)

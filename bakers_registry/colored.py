@@ -132,7 +132,7 @@ class PrinterLog(PrinterJSON):
         sys.stdout.write('  ')
 
         if entry['kind'] == 'create':
-            self.cpr('New Baker!', 1)
+            self.cpr(f'New Baker: {entry["address"]}', 1)
         else:
             self.simple_data = False
             self.cpr(entry['key'], 6)
