@@ -1,6 +1,7 @@
 import requests
 from typing import List, Tuple
 from pytezos import pytezos, RpcError
+from pytezos.michelson.converter import MichelineSchemaError
 from conseil import conseil
 from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
@@ -251,3 +252,11 @@ def get_unify_diff(registry_address, indexer='tzkt', since=None, raw=False) -> l
                 snapshot.update(address=info)
 
     return list(reversed(log))
+
+
+def generate_command_line(registry_address, baker_address, data, network='mainnet'):
+    registry = pytezos.using(shell=network, key=baker_address).contract(registry_address)
+    try:
+        return registry.set_data(delegate=baker_address, **data).cmdline()
+    except MichelineSchemaError:
+        exit(-1)

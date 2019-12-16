@@ -7,7 +7,7 @@ from pytezos.michelson.converter import MichelineSchemaError
 
 from bakers_registry.encoding import decode_info, encode_info
 from bakers_registry.colored import PrinterJSON, PrinterLog
-from bakers_registry.core import get_all_bakers, get_snapshot, get_unify_diff
+from bakers_registry.core import get_all_bakers, get_snapshot, get_unify_diff, generate_command_line
 
 
 def fail(data):
@@ -49,8 +49,11 @@ class BakersRegistryCli:
         except RpcError as e:
             fail(next(iter(e.args)))
         else:
-            if not data:
+            if isinstance(data, dict) and set(data.keys()) == {baker_address}:
+                data = data[baker_address]
+            else:
                 fail('Not found')
+
             if output_file:
                 with open(output_file, 'w+') as f:
                     f.write(json.dumps(data, indent=4))
@@ -71,16 +74,16 @@ class BakersRegistryCli:
             data = json.loads(f.read(), use_decimal=True)
 
         data = encode_info(data)
-        registry = pytezos.using(shell=network, key=baker_address).contract(registry_address)
-        try:
-            cmd = registry.set_data(delegate=baker_address, **data).cmdline()
-        except MichelineSchemaError:
-            exit(-1)
+        if preview:
+            info(data)
         else:
-            if preview:
-                info(data)
-            else:
-                print(cmd)
+            cmd = generate_command_line(
+                registry_address=registry_address,
+                baker_address=baker_address,
+                data=data,
+                network=network
+            )
+            print(cmd)
 
     def new(self, output_file=None):
         """
