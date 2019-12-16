@@ -22,20 +22,20 @@ pip install bakers-registry
 
 ## Usage
 
-### `bakers get` Get the current baker config
+### Get the current baker config
 
 ```bash
 bakers get BAKER_ADDRESS <flags>
 ```
 
+#### Arguments
 * `BAKER_ADDRESS`   tz-address
 * `--output_file=OUTPUT_FILE`   path to the file to store the data (optional)
 * `--raw=RAW`   keep intermediate data representation (default is False)
 * `--network=NETWORK`   Tezos network (default is mainnet)
 * `--registry_address=REGISTRY_ADDRESS` address of the registry contract (predefined)
-```
 
-##### Sample output
+#### Sample output
 ```json
 {
   "bakerName": "Bake'n'Rolls",
@@ -96,49 +96,53 @@ bakers get BAKER_ADDRESS <flags>
 
 ```
 
-### `bakers set` Generate tezos-client command from the config file
+### Generate tezos-client command from the config file
 ```bash
 bakers set BAKER_ADDRESS INPUT_FILE <flags>
 ```
 
+#### Arguments
 * `BAKER_ADDRESS`   tz-address
 * `INPUT_FILE`  path to the file with configuration (can contain any-level representation)
 * `--preview=PREVIEW`   print resulting config instead of command line (default is False)
 * `--network=NETWORK`   Tezos network (default is mainnet)
 * `--registry_address=REGISTRY_ADDRESS` address of the registry contract (predefined)
 
-##### Sample output
+#### Sample output
 
 ```bash
 transfer 0 from tz1NortRftucvAkD1J58L32EhSVrQEWJCEnB to KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog --entrypoint 'set_data' --arg 'Pair "tz1NortRftucvAkD1J58L32EhSVrQEWJCEnB" (Pair (Some (Pair (Pair (Pair 0x42616b65276e27526f6c6c73 True) 0x68747470733a2f2f62616b656e726f6c6c732e636f6d2f72656769737472792e6a736f6e) (Pair (Pair 9100 { "tz1Zrqm4TkJwqTxm5TiyVFh6taXG4Wrq7tko" }) (Pair (Pair (Pair 100000 True) (Pair 6 (Pair 1 0))) (Pair (Pair True 16383) (Pair 100 True)))))) None)'
 ```
 
-### `bakers new` Create default config
+### Create default config
 
 ```bash
 bakers new <flags>
 ```
 
+#### Arguments
 * `--output_file=OUTPUT_FILE`   path to the file to store the data (optional)
 
-### `bakers all` Get all bakers
+### Get all bakers
 
 ```bash
 bakers all OUTPUT_FILE <flags>
 ```
 
+#### Arguments
 * `OUTPUT_FILE`   path to the file
 * `--raw=RAW`   keep intermediate data representation (default is False)
 * `--indexer=INDEXER`   which indexer to use to retrieve operation levels [tzkt, tzstats, conseil]
 * `--network=NETWORK`   Tezos network (default is mainnet)
 * `--registry_address=REGISTRY_ADDRESS` address of the registry contract (predefined)
 
-### `bakers log` Get recent changes
+### Get recent changes
 
 ```bash
 bakers log <flags>
 ```
 
+#### Arguments
 * `--output_file=OUTPUT_FILE`   path to the file
 * `--since=SINCE`   set lower bound, can be level (int) or string "level:700000" "cycle:170"
 * `--raw=RAW`   keep intermediate data representation (default is False)
@@ -146,7 +150,7 @@ bakers log <flags>
 * `--network=NETWORK`   Tezos network (default is mainnet)
 * `--registry_address=REGISTRY_ADDRESS` address of the registry contract (predefined)
 
-##### Sample output
+#### Sample output
 
 ```bash
 738542  Airfoil              subtractLostFeesWhenMissRevelation: true => false
