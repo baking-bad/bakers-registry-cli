@@ -6,6 +6,8 @@
 
 Console client for the [Tezos Bakers Registry](https://tezit.github.io/baker-registry)
 
+![bakers-registry](https://i.imgur.com/dIO1JXy.gif)
+
 #### Decentralized approach
 * Does not depend on a particular indexer: you can choose from several options, or add new one with little efforts
 * Most data is retrieved from a pool of public RPC nodes
