@@ -14,10 +14,11 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
-pytezos = "^2.2.1"
+python = "^3.6"
+pytezos = "^2.2.4"
 conseil = "*"
 jsondiff = "*"
+yaspin = "*"
 
 [tool.poetry.dev-dependencies]
 

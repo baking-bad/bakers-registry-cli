@@ -5,7 +5,8 @@ from conseil import conseil
 from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
 from jsondiff import diff
-from jsondiff.symbols import insert, delete, replace
+from jsondiff.symbols import insert, delete
+from yaspin import yaspin
 
 from bakers_registry.encoding import decode_info, decode_snapshot
 
@@ -44,105 +45,105 @@ def get_update_levels_conseil(address):
     return set([orig_level] + tx_levels)
 
 
-def get_update_levels(address, since=None) -> List[int]:
-    getters = [
-        get_update_levels_tzkt,
-        get_update_levels_tzstats,
-        get_update_levels_conseil]
+def get_update_levels(address, indexer, since=None) -> List[int]:
+    indexers = {
+        'tzkt': get_update_levels_tzkt,
+        'tzstats': get_update_levels_tzstats,
+        'conseil': get_update_levels_conseil
+    }
 
-    with ThreadPoolExecutor(max_workers=len(getters)) as executor:
-        levels = list(executor.map(lambda x: x(address), getters))
-
-    assert all(map(lambda x: x == levels[0], levels))
-    update_levels = list(sorted(levels[0], reverse=True))
-
-    if since:
-        if isinstance(since, str):
-            kind, value = since.split(':')
-            if kind == 'level':
-                since = int(value)
-            elif kind == 'cycle':
-                since = int(value) * 4096
-            # elif kind == 'time': TODO
-            # elif kind == 'date':
+    with yaspin(text=f"Retrieving operation levels from {indexer}..."):
+        update_levels = indexers[indexer](address)
+        update_levels = list(sorted(update_levels, reverse=True))
+        if since:
+            if isinstance(since, str):
+                kind, value = since.split(':')
+                if kind == 'level':
+                    since = int(value)
+                elif kind == 'cycle':
+                    since = int(value) * 4096
+                # elif kind == 'time': TODO
+                # elif kind == 'date':
+                else:
+                    assert False, kind
             else:
-                assert False, kind
-        else:
-            assert isinstance(since, int), since
-        update_levels = list(filter(lambda x: x > since, update_levels))
+                assert isinstance(since, int), since
+            update_levels = list(filter(lambda x: x > since, update_levels))
 
     return update_levels
 
 
-def get_updates(registry_address, since=None) -> List[Tuple[int, dict]]:
-    # print(f'Querying updates since {since or "origination"}...')
-    update_levels = get_update_levels(registry_address, since)
-    baker_registry = pytezos.using('mainnet-pool').contract(registry_address)
+def get_updates(registry_address, indexer, since=None) -> List[Tuple[int, dict]]:
+    update_levels = get_update_levels(registry_address, indexer=indexer, since=since)
 
-    def parse_updates(level):
-        big_map_diff = dict()
-        opg_list = baker_registry.shell.blocks[level].operations.managers()
-        for opg in opg_list:
-            try:
-                results = baker_registry.operation_result(opg)
-                for result in results:
-                    if hasattr(result, 'big_map_diff'):
-                        big_map_diff.update(**result.big_map_diff)
-                    else:
-                        big_map_diff.update(**result.storage[0])
-            except RpcError:
-                pass
-        # print(f'Got {len(big_map_diff)} updates at level {level}')
-        return level, big_map_diff
+    with yaspin(text=f"Retrieving big map diffs since {since or 'origination'}..."):
+        baker_registry = pytezos.using('mainnet-pool').contract(registry_address)
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        updates = list(executor.map(parse_updates, update_levels))
+        def parse_updates(level):
+            big_map_diff = dict()
+            opg_list = baker_registry.shell.blocks[level].operations.managers()
+            for opg in opg_list:
+                try:
+                    results = baker_registry.operation_result(opg)
+                    for result in results:
+                        if hasattr(result, 'big_map_diff'):
+                            big_map_diff.update(**result.big_map_diff)
+                        else:
+                            big_map_diff.update(**result.storage[0])
+                except RpcError:
+                    pass
+            return level, big_map_diff
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            updates = list(executor.map(parse_updates, update_levels))
 
     return updates
 
 
 def get_snapshot(registry_address, bakers_addresses: list, raw=False, level=None, network='mainnet') -> dict:
-    registry = pytezos.using(network).contract(registry_address)
+    with yaspin(text=f'Retrieving big map snapshot at {level or "head"}...'):
+        registry = pytezos.using(network).contract(registry_address)
 
-    def big_map_get(address):
-        try:
-            data = registry.big_map_get(address, level or 'head')
-        except AssertionError:
-            data = None
-        else:
-            if raw:
-                data.pop('last_update')
+        def big_map_get(address):
+            try:
+                data = registry.big_map_get(address, level or 'head')
+            except AssertionError:
+                data = None
             else:
-                data = decode_info(data)
+                if raw:
+                    data.pop('last_update')
+                else:
+                    data = decode_info(data)
 
-        return address, data
+            return address, data
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        snapshot = dict(executor.map(big_map_get, bakers_addresses))
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            snapshot = dict(executor.map(big_map_get, bakers_addresses))
 
     return {k: v for k, v in snapshot.items() if v is not None}
 
 
-def get_all_bakers(registry_address, raw=False) -> dict:
-    updates = get_updates(registry_address)
+def get_all_bakers(registry_address, indexer='tzkt', raw=False) -> dict:
+    updates = get_updates(registry_address, indexer=indexer)
 
     def merge_updates(a: tuple, b: tuple):
         keys = set(a[1].keys()).union(set(b[1].keys()))
         res = dict()
         for key in keys:
             if key in a[1] and key not in b[1]:
-                res[key] = a[key]
+                res[key] = a[1][key]
             elif key in b[1] and key not in a[1]:
-                res[key] = b[key]
+                res[key] = b[1][key]
             elif a[0] > b[0]:
-                res[key] = a[key]
+                res[key] = a[1][key]
             else:
-                res[key] = b[key]
+                res[key] = b[1][key]
         return max(a[0], b[0]), res
 
-    _, data = reduce(merge_updates, updates)
-    if not raw:
-        data = decode_snapshot(data)
+    with yaspin(text='Merging updates...'):
+        _, data = reduce(merge_updates, updates)
+        if not raw:
+            data = decode_snapshot(data)
 
     return data
 
@@ -199,11 +200,11 @@ def flat_list(list_of_lists):
     return [item for sublist in list_of_lists for item in sublist]
 
 
-def get_unify_diff(registry_address, since=None, raw=False) -> list:
+def get_unify_diff(registry_address, indexer='tzkt', since=None, raw=False) -> list:
     if since is None:
         since = f'cycle:{pytezos.using("mainnet").shell.head.cycle() - 2}'
 
-    updates = get_updates(registry_address, since=since)
+    updates = get_updates(registry_address, indexer=indexer, since=since)
     if not updates:
         return []
 
@@ -223,27 +224,28 @@ def get_unify_diff(registry_address, since=None, raw=False) -> list:
         snapshot = decode_snapshot(updates[0][1])
         updates = updates[1:]
 
-    log = list()
-    for level, update in updates:
-        for address, info in update.items():
-            if raw:
-                info.pop('last_update')
-                baker = address
-            else:
-                info = decode_info(info)
-                baker = info['bakerName']
+    with yaspin(text='Calculating json diffs...'):
+        log = list()
+        for level, update in updates:
+            for address, info in update.items():
+                if raw:
+                    info.pop('last_update')
+                    baker = address
+                else:
+                    info = decode_info(info)
+                    baker = info['bakerName']
 
-            if address in snapshot:
-                changes = diff(snapshot[address], info, syntax='symmetric')
-                log.extend(map(lambda x: format_entry(level, baker, x),
-                               list(iter_diff(changes))))
-            else:
-                log.append(dict(
-                    level=level,
-                    baker=baker,
-                    kind='create'
-                ))
+                if address in snapshot:
+                    changes = diff(snapshot[address], info, syntax='symmetric')
+                    log.extend(map(lambda x: format_entry(level, baker, x),
+                                   list(iter_diff(changes))))
+                else:
+                    log.append(dict(
+                        level=level,
+                        baker=baker,
+                        kind='create'
+                    ))
 
-            snapshot.update(address=info)
+                snapshot.update(address=info)
 
     return list(reversed(log))

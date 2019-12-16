@@ -95,28 +95,30 @@ class BakersRegistryCli:
             info(data)
 
     def all(self, output_file, raw=False,
-            network='mainnet', registry_address='KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog'):
+            indexer='tzkt', network='mainnet', registry_address='KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog'):
         """
         Get all bakers
         :param output_file: path to the file
         :param raw: keep intermediate data representation (default is False)
+        :param indexer: which indexer to use to retrieve operation levels [tzkt, tzstats, conseil]
         :param network: Tezos network (default is mainnet)
         :param registry_address: address of the registry contract (predefined)
         """
         if network != 'mainnet':
             fail('Only mainnet is supported at the moment')
 
-        data = get_all_bakers(registry_address, raw)
+        data = get_all_bakers(registry_address, indexer=indexer, raw=raw)
         with open(output_file, 'w+') as f:
             f.write(json.dumps(data, indent=4))
 
     def log(self, output_file=None, since=None, raw=False,
-            network='mainnet', registry_address='KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog'):
+            indexer='tzkt', network='mainnet', registry_address='KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog'):
         """
         Show registry changes, line by line
         :param output_file: path to the file
         :param since: set lower bound, can be level (int) or string "level:700000" "cycle:170"
         :param raw: keep intermediate data representation (default is False)
+        :param indexer: which indexer to use to retrieve operation levels [tzkt, tzstats, conseil]
         :param network: Tezos network (default is mainnet)
         :param registry_address: address of the registry contract (predefined)
         """
@@ -125,6 +127,7 @@ class BakersRegistryCli:
 
         log = get_unify_diff(
             registry_address=registry_address,
+            indexer=indexer,
             since=since,
             raw=raw)
         if output_file:
