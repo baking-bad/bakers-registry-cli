@@ -270,7 +270,7 @@ def get_baker(registry_address, baker_address, raw=False, network='mainnet'):
         return data[baker_address]
 
 
-def upsert_baker(registry_address, baker_address, data, network='mainnet'):
+def upsert_baker(registry_address, baker_address, data, dry_run=False, network='mainnet'):
     data = encode_info(data)
     current_state = get_baker(
         registry_address=registry_address,
@@ -290,8 +290,13 @@ def upsert_baker(registry_address, baker_address, data, network='mainnet'):
     with yaspin(text='Generating command line...'):
         registry = pytezos.using(shell=network, key=baker_address).contract(registry_address)
         try:
-            cmdline = registry.set_data(delegate=baker_address, **data).with_amount(fee).cmdline()
+            call = registry.set_data(delegate=baker_address, **data).with_amount(fee)
+            cmdline = call.cmdline()
         except MichelineSchemaError:
             exit(-1)
+
+    if dry_run:
+        with yaspin(text='Simulating operation...'):
+            call.result()
 
     return cmdline, log

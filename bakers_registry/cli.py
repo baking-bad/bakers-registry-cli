@@ -63,23 +63,28 @@ class BakersRegistryCli:
         Generate tezos-client command from the config file
         :param baker_address: tz-address
         :param input_file: path to the file with configuration (can contain any-level representation)
-        :param preview: print resulting diff instead of command line (default is False)
+        :param preview: print resulting diff and simulate operation instead of command line (default is False)
         :param network: Tezos network (default is mainnet)
         :param registry_address: address of the registry contract (predefined)
         """
         with open(input_file, 'r') as f:
             data = json.loads(f.read(), use_decimal=True)
 
-        cmdline, log = upsert_baker(
-            registry_address=registry_address,
-            baker_address=baker_address,
-            data=data,
-            network=network
-        )
-        if preview:
-            PrinterLog().print_log(log)
+        try:
+            cmdline, log = upsert_baker(
+                registry_address=registry_address,
+                baker_address=baker_address,
+                data=data,
+                dry_run=preview,
+                network=network
+            )
+        except RpcError as e:
+            fail(next(iter(e.args)))
         else:
-            print(cmdline)
+            if preview:
+                PrinterLog().print_log(log)
+            else:
+                print(cmdline)
 
     def new(self, output_file=None):
         """
