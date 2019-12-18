@@ -14,11 +14,15 @@ def decode_split(value):
     return 1 - decode_percent(value, decimals=4)
 
 
+def decode_hex(value):
+    return bytes.fromhex(value).decode()
+
+
 def decode_info(data):
     return {
-        'bakerName': bytes.fromhex(data['bakerName']).decode(),
+        'bakerName': decode_hex(data['bakerName']),
         'openForDelegation': data['openForDelegation'],
-        'bakerOffchainRegistryUrl': bytes.fromhex(data['bakerOffchainRegistryUrl']).decode(),
+        'bakerOffchainRegistryUrl': decode_hex(data['bakerOffchainRegistryUrl']),
         'fee': str(decode_split(data['split'])),
         'bakerPaysFromAccounts': data['bakerPaysFromAccounts'],
         'minDelegation': str(decode_mutez(data['minDelegation'])),

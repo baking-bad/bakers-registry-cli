@@ -115,7 +115,8 @@ class BakersRegistryCli:
         """
         Show registry changes, line by line
         :param output_file: path to the file
-        :param since: set lower bound, can be level (int) or string "level:700000" "cycle:170"
+        :param since: set lower bound, can be level (int) or string "level:700000" "cycle:170".
+            Default is "cycle:{current_cycle - 2}".
         :param raw: keep intermediate data representation (default is False)
         :param indexer: which indexer to use to retrieve operation levels [tzkt, tzstats, conseil]
         :param network: Tezos network (default is mainnet)

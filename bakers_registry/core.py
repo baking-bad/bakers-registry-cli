@@ -10,7 +10,7 @@ from jsondiff import diff
 from jsondiff.symbols import insert, delete
 from yaspin import yaspin
 
-from bakers_registry.encoding import decode_info, decode_snapshot, encode_info
+from bakers_registry.encoding import decode_info, decode_snapshot, encode_info, decode_hex
 
 LIMIT = 1000  # TODO: change me
 CREATE_FEE = Decimal('1.5')
@@ -237,7 +237,7 @@ def get_unify_diff(registry_address, indexer='tzkt', since=None, raw=False) -> l
             for address, info in update.items():
                 if raw:
                     info.pop('last_update')
-                    baker = address
+                    baker = decode_hex(info['bakerName'])
                 else:
                     info = decode_info(info)
                     baker = info['bakerName']
