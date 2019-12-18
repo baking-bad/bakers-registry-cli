@@ -126,10 +126,12 @@ class PrinterLog(PrinterJSON):
     ind = 0
 
     def print_entry(self, entry, max_baker_length):
-        sys.stdout.write(str(entry['level']))
-        sys.stdout.write('  ')
-        self.cpr(entry['baker'].ljust(max_baker_length), 1)
-        sys.stdout.write('  ')
+        if entry.get('level'):
+            sys.stdout.write(str(entry['level']))
+            sys.stdout.write('  ')
+        if entry.get('baker'):
+            self.cpr(entry['baker'].ljust(max_baker_length), 1)
+            sys.stdout.write('  ')
 
         if entry['kind'] == 'create':
             self.cpr(f'New Baker: {entry["address"]}', 1)
@@ -146,8 +148,8 @@ class PrinterLog(PrinterJSON):
 
     def print_log(self, entries: list):
         if entries:
-            max_baker_length = max(map(lambda x: len(x['baker']), entries))
+            max_baker_length = max(map(lambda x: len(x.get('baker', '')), entries))
             for entry in entries:
                 self.print_entry(entry, max_baker_length)
         else:
-            self.cpr('No events\n', 1)
+            self.cpr('No changes\n', 2)

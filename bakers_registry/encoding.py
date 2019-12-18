@@ -6,12 +6,20 @@ def decode_mutez(value):
     return Decimal(value) / 10000
 
 
+def decode_percent(value, decimals=2):
+    return Decimal(value) / 10 ** decimals
+
+
+def decode_split(value):
+    return 1 - decode_percent(value, decimals=4)
+
+
 def decode_info(data):
     return {
         'bakerName': bytes.fromhex(data['bakerName']).decode(),
         'openForDelegation': data['openForDelegation'],
         'bakerOffchainRegistryUrl': bytes.fromhex(data['bakerOffchainRegistryUrl']).decode(),
-        'fee': str(1 - decode_mutez(data['split'])),
+        'fee': str(decode_split(data['split'])),
         'bakerPaysFromAccounts': data['bakerPaysFromAccounts'],
         'minDelegation': str(decode_mutez(data['minDelegation'])),
         'subtractPayoutsLessThanMin': data['subtractPayoutsLessThanMin'],
@@ -35,7 +43,7 @@ def decode_info(data):
             'subtractLostRewardsWhenMissRevelation': data['paymentConfigMask'] & 256 > 0,
             'subtractLostFeesWhenMissRevelation': data['paymentConfigMask'] & 512 > 0
         },
-        'overDelegationThreshold': data['overDelegationThreshold'],
+        'overDelegationThreshold': str(decode_percent(data['overDelegationThreshold'])),
         'subtractRewardsFromUninvitedDelegation': data['subtractRewardsFromUninvitedDelegation']
     }
 
@@ -86,18 +94,35 @@ def encode_config_mask(data, default):
 
 def encode_mutez(value):
     if isinstance(value, str):
-        return int(Decimal(value) * 10000)
-    if isinstance(value, int):
-        return value
-    assert False, value
+        res = int(Decimal(value) * 10000)
+    elif isinstance(value, int):
+        res = value
+    else:
+        assert False, value
+    assert res >= 0, 'Cannot be negative'
+    return res
+
+
+def encode_percent(value, decimals=2):
+    factor = 10 ** decimals
+    if isinstance(value, str):
+        res = int(Decimal(value) * factor)
+    elif isinstance(value, int):
+        res = value
+    else:
+        assert False, value
+    assert 0 <= res <= factor, f'Should be between 0 and {factor}'
+    return res
 
 
 def encode_split(data):
     if data.get('split'):
-        return int(data['split'])
-    if data.get('fee'):
-        return 10000 - encode_mutez(data['fee'])
-    return 10000
+        res = int(data['split'])
+    elif data.get('fee'):
+        res = 10000 - encode_percent(data['fee'], decimals=4)
+    else:
+        res = 10000
+    return res
 
 
 def encode_info(data):
@@ -114,7 +139,7 @@ def encode_info(data):
         'minPayout': encode_mutez(data.get('minPayout', 0)),
         'bakerChargesTransactionFee': data.get('bakerChargesTransactionFee', False),
         'paymentConfigMask': encode_config_mask(data, 16383),
-        'overDelegationThreshold': data.get('overDelegationThreshold', 100),
+        'overDelegationThreshold': encode_percent(data.get('overDelegationThreshold', 100)),
         'subtractRewardsFromUninvitedDelegation': data.get('subtractRewardsFromUninvitedDelegation', True)
     }
 

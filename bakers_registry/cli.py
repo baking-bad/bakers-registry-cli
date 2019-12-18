@@ -2,12 +2,11 @@ import sys
 import fire
 import simplejson as json
 from pprint import pformat
-from pytezos import pytezos, RpcError
-from pytezos.michelson.converter import MichelineSchemaError
+from pytezos import RpcError
 
 from bakers_registry.encoding import decode_info, encode_info
 from bakers_registry.colored import PrinterJSON, PrinterLog
-from bakers_registry.core import get_all_bakers, get_snapshot, get_unify_diff, generate_command_line
+from bakers_registry.core import get_all_bakers, upsert_baker, get_unify_diff, get_baker
 
 
 def fail(data):
@@ -41,17 +40,15 @@ class BakersRegistryCli:
         :param registry_address: address of the registry contract (predefined)
         """
         try:
-            data = get_snapshot(
+            data = get_baker(
                 registry_address=registry_address,
-                bakers_addresses=[baker_address],
+                baker_address=baker_address,
                 raw=raw,
                 network=network)
         except RpcError as e:
             fail(next(iter(e.args)))
         else:
-            if isinstance(data, dict) and set(data.keys()) == {baker_address}:
-                data = data[baker_address]
-            else:
+            if not data:
                 fail('Not found')
 
             if output_file:
@@ -66,24 +63,23 @@ class BakersRegistryCli:
         Generate tezos-client command from the config file
         :param baker_address: tz-address
         :param input_file: path to the file with configuration (can contain any-level representation)
-        :param preview: print resulting config instead of command line (default is False)
+        :param preview: print resulting diff instead of command line (default is False)
         :param network: Tezos network (default is mainnet)
         :param registry_address: address of the registry contract (predefined)
         """
         with open(input_file, 'r') as f:
             data = json.loads(f.read(), use_decimal=True)
 
-        data = encode_info(data)
+        cmdline, log = upsert_baker(
+            registry_address=registry_address,
+            baker_address=baker_address,
+            data=data,
+            network=network
+        )
         if preview:
-            info(data)
+            PrinterLog().print_log(log)
         else:
-            cmd = generate_command_line(
-                registry_address=registry_address,
-                baker_address=baker_address,
-                data=data,
-                network=network
-            )
-            print(cmd)
+            print(cmdline)
 
     def new(self, output_file=None):
         """

@@ -1,4 +1,5 @@
 import requests
+from decimal import Decimal
 from typing import List, Tuple
 from pytezos import pytezos, RpcError
 from pytezos.michelson.converter import MichelineSchemaError
@@ -9,9 +10,11 @@ from jsondiff import diff
 from jsondiff.symbols import insert, delete
 from yaspin import yaspin
 
-from bakers_registry.encoding import decode_info, decode_snapshot
+from bakers_registry.encoding import decode_info, decode_snapshot, encode_info
 
 LIMIT = 1000  # TODO: change me
+CREATE_FEE = Decimal('1.5')
+UPDATE_FEE = Decimal('0.5')
 
 
 def get_update_levels_tzkt(address):
@@ -112,7 +115,9 @@ def get_snapshot(registry_address, bakers_addresses: list, raw=False, level=None
                 data = None
             else:
                 if raw:
-                    data.pop('last_update')
+                    for key in ['last_update', 'reporterAccount']:
+                        if key in data:
+                            del data[key]
                 else:
                     data = decode_info(data)
 
@@ -176,7 +181,7 @@ def iter_diff(node, root_key=''):
         assert False, node
 
 
-def format_entry(level, baker, entry):
+def format_entry(entry, level=0, baker=''):
     assert isinstance(entry, tuple)
     assert len(entry) == 3
 
@@ -239,7 +244,7 @@ def get_unify_diff(registry_address, indexer='tzkt', since=None, raw=False) -> l
 
                 if address in snapshot:
                     changes = diff(snapshot[address], info, syntax='symmetric')
-                    log.extend(map(lambda x: format_entry(level, baker, x),
+                    log.extend(map(lambda x: format_entry(x, level, baker),
                                    list(iter_diff(changes))))
                 else:
                     log.append(dict(
@@ -254,9 +259,39 @@ def get_unify_diff(registry_address, indexer='tzkt', since=None, raw=False) -> l
     return list(reversed(log))
 
 
-def generate_command_line(registry_address, baker_address, data, network='mainnet'):
-    registry = pytezos.using(shell=network, key=baker_address).contract(registry_address)
-    try:
-        return registry.set_data(delegate=baker_address, **data).cmdline()
-    except MichelineSchemaError:
-        exit(-1)
+def get_baker(registry_address, baker_address, raw=False, network='mainnet'):
+    data = get_snapshot(
+        registry_address=registry_address,
+        bakers_addresses=[baker_address],
+        raw=raw,
+        network=network
+    )
+    if isinstance(data, dict) and set(data.keys()) == {baker_address}:
+        return data[baker_address]
+
+
+def upsert_baker(registry_address, baker_address, data, network='mainnet'):
+    data = encode_info(data)
+    current_state = get_baker(
+        registry_address=registry_address,
+        baker_address=baker_address,
+        network=network,
+        raw=True
+    )
+
+    if current_state:
+        changes = diff(current_state, data, syntax='symmetric')
+        log = list(map(format_entry, list(iter_diff(changes))))
+        fee = UPDATE_FEE
+    else:
+        log = [dict(kind='create', address=baker_address)]
+        fee = CREATE_FEE
+
+    with yaspin(text='Generating command line...'):
+        registry = pytezos.using(shell=network, key=baker_address).contract(registry_address)
+        try:
+            cmdline = registry.set_data(delegate=baker_address, **data).with_amount(fee).cmdline()
+        except MichelineSchemaError:
+            exit(-1)
+
+    return cmdline, log
