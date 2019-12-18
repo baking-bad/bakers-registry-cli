@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bakers-registry"
-version = "0.1.4"
+version = "0.1.5"
 license = "MIT"
 description = "Command line interface for the Tezos Bakers Registry"
 authors = ["Michael Zaikin <mz@baking-bad.org>"]
@@ -15,7 +15,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-pytezos = "^2.2.5"
+pytezos = "^2.2.6"
 conseil = "*"
 jsondiff = "*"
 yaspin = "*"

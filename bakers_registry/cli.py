@@ -2,12 +2,11 @@ import sys
 import fire
 import simplejson as json
 from pprint import pformat
-from pytezos import pytezos, RpcError
-from pytezos.michelson.converter import MichelineSchemaError
+from pytezos import RpcError
 
 from bakers_registry.encoding import decode_info, encode_info
 from bakers_registry.colored import PrinterJSON, PrinterLog
-from bakers_registry.core import get_all_bakers, get_snapshot, get_unify_diff, generate_command_line
+from bakers_registry.core import get_all_bakers, upsert_baker, get_unify_diff, get_baker
 
 
 def fail(data):
@@ -41,17 +40,15 @@ class BakersRegistryCli:
         :param registry_address: address of the registry contract (predefined)
         """
         try:
-            data = get_snapshot(
+            data = get_baker(
                 registry_address=registry_address,
-                bakers_addresses=[baker_address],
+                baker_address=baker_address,
                 raw=raw,
                 network=network)
         except RpcError as e:
             fail(next(iter(e.args)))
         else:
-            if isinstance(data, dict) and set(data.keys()) == {baker_address}:
-                data = data[baker_address]
-            else:
+            if not data:
                 fail('Not found')
 
             if output_file:
@@ -66,24 +63,28 @@ class BakersRegistryCli:
         Generate tezos-client command from the config file
         :param baker_address: tz-address
         :param input_file: path to the file with configuration (can contain any-level representation)
-        :param preview: print resulting config instead of command line (default is False)
+        :param preview: print resulting diff and simulate operation instead of command line (default is False)
         :param network: Tezos network (default is mainnet)
         :param registry_address: address of the registry contract (predefined)
         """
         with open(input_file, 'r') as f:
             data = json.loads(f.read(), use_decimal=True)
 
-        data = encode_info(data)
-        if preview:
-            info(data)
-        else:
-            cmd = generate_command_line(
+        try:
+            cmdline, log = upsert_baker(
                 registry_address=registry_address,
                 baker_address=baker_address,
                 data=data,
+                dry_run=preview,
                 network=network
             )
-            print(cmd)
+        except RpcError as e:
+            fail(next(iter(e.args)))
+        else:
+            if preview:
+                PrinterLog().print_log(log)
+            else:
+                print(cmdline)
 
     def new(self, output_file=None):
         """
@@ -119,7 +120,8 @@ class BakersRegistryCli:
         """
         Show registry changes, line by line
         :param output_file: path to the file
-        :param since: set lower bound, can be level (int) or string "level:700000" "cycle:170"
+        :param since: set lower bound, can be level (int) or string "level:700000" "cycle:170".
+            Default is "cycle:{current_cycle - 2}".
         :param raw: keep intermediate data representation (default is False)
         :param indexer: which indexer to use to retrieve operation levels [tzkt, tzstats, conseil]
         :param network: Tezos network (default is mainnet)
