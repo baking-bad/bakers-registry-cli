@@ -254,7 +254,7 @@ def get_unify_diff(registry_address, indexer='tzkt', since=None, raw=False) -> l
                         address=address
                     ))
 
-                snapshot.update(address=info)
+                snapshot[address] = info
 
     return list(reversed(log))
 
