@@ -18,7 +18,8 @@ def decode_hex(value):
     return bytes.fromhex(value).decode()
 
 
-def decode_info(data):
+def decode_info(info):
+    data = info['data']
     return {
         'bakerName': decode_hex(data['bakerName']),
         'openForDelegation': data['openForDelegation'],
@@ -48,7 +49,8 @@ def decode_info(data):
             'subtractLostFeesWhenMissRevelation': data['paymentConfigMask'] & 512 > 0
         },
         'overDelegationThreshold': str(decode_percent(data['overDelegationThreshold'])),
-        'subtractRewardsFromUninvitedDelegation': data['subtractRewardsFromUninvitedDelegation']
+        'subtractRewardsFromUninvitedDelegation': data['subtractRewardsFromUninvitedDelegation'],
+        'reporterAccount': info['reporterAccount']
     }
 
 
@@ -129,22 +131,23 @@ def encode_split(data):
     return res
 
 
-def encode_info(data):
+def encode_info(info):
     return {
-        'bakerName': try_hex_encode(data.get('bakerName', '')),
-        'openForDelegation': data.get('openForDelegation', True),
-        'bakerOffchainRegistryUrl': try_hex_encode(data.get('bakerOffchainRegistryUrl', '')),
-        'split': encode_split(data),
-        'bakerPaysFromAccounts': data.get('bakerPaysFromAccounts', []),
-        'minDelegation': encode_mutez(data.get('minDelegation', 0)),
-        'subtractPayoutsLessThanMin': data.get('subtractPayoutsLessThanMin', True),
-        'payoutDelay': data.get('payoutDelay', 0),
-        'payoutFrequency': data.get('payoutFrequency', 1),
-        'minPayout': encode_mutez(data.get('minPayout', 0)),
-        'bakerChargesTransactionFee': data.get('bakerChargesTransactionFee', False),
-        'paymentConfigMask': encode_config_mask(data, 16383),
-        'overDelegationThreshold': encode_percent(data.get('overDelegationThreshold', 100)),
-        'subtractRewardsFromUninvitedDelegation': data.get('subtractRewardsFromUninvitedDelegation', True)
+        'data': {'bakerName': try_hex_encode(info.get('bakerName', '')),
+                 'openForDelegation': info.get('openForDelegation', True),
+                 'bakerOffchainRegistryUrl': try_hex_encode(info.get('bakerOffchainRegistryUrl', '')),
+                 'split': encode_split(info),
+                 'bakerPaysFromAccounts': info.get('bakerPaysFromAccounts', []),
+                 'minDelegation': encode_mutez(info.get('minDelegation', 0)),
+                 'subtractPayoutsLessThanMin': info.get('subtractPayoutsLessThanMin', True),
+                 'payoutDelay': info.get('payoutDelay', 0),
+                 'payoutFrequency': info.get('payoutFrequency', 1),
+                 'minPayout': encode_mutez(info.get('minPayout', 0)),
+                 'bakerChargesTransactionFee': info.get('bakerChargesTransactionFee', False),
+                 'paymentConfigMask': encode_config_mask(info, 16383),
+                 'overDelegationThreshold': encode_percent(info.get('overDelegationThreshold', 100)),
+                 'subtractRewardsFromUninvitedDelegation': info.get('subtractRewardsFromUninvitedDelegation', True)},
+        'reporterAccount': info['reporterAccount']
     }
 
 
