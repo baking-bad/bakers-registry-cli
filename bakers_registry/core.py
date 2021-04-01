@@ -1,8 +1,8 @@
 import requests
 from decimal import Decimal
 from typing import List, Tuple
-from pytezos import pytezos, RpcError
-from pytezos.michelson.converter import MichelineSchemaError
+from pytezos import pytezos
+from pytezos.rpc.errors import RpcError
 from conseil import conseil
 from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
@@ -81,7 +81,7 @@ def get_updates(registry_address, indexer, since=None) -> List[Tuple[int, dict]]
     update_levels = get_update_levels(registry_address, indexer=indexer, since=since)
 
     with yaspin(text=f"Retrieving big map diffs since {since or 'origination'}..."):
-        baker_registry = pytezos.using('mainnet-pool').contract(registry_address)
+        baker_registry = pytezos.using('mainnet').contract(registry_address)
 
         def parse_updates(level):
             big_map_diff = dict()
@@ -90,10 +90,8 @@ def get_updates(registry_address, indexer, since=None) -> List[Tuple[int, dict]]
                 try:
                     results = baker_registry.operation_result(opg)
                     for result in results:
-                        if hasattr(result, 'big_map_diff'):
-                            big_map_diff.update(**result.big_map_diff)
-                        else:
-                            big_map_diff.update(**result.storage[0])
+                        print(result.storage)
+                        big_map_diff.update(**result.storage['big_map_0'])
                 except RpcError:
                     pass
             return level, big_map_diff
@@ -110,7 +108,7 @@ def get_snapshot(registry_address, bakers_addresses: list, raw=False, level=None
 
         def big_map_get(address):
             try:
-                data = registry.big_map_get(address, level or 'head')
+                data = registry.using(block_id=level or 'head').storage['big_map_0'][address]()
             except AssertionError:
                 data = None
             else:
@@ -292,7 +290,7 @@ def upsert_baker(registry_address, baker_address, data, dry_run=False, network='
         try:
             call = registry.set_data(delegate=baker_address, **data).with_amount(fee)
             cmdline = call.cmdline()
-        except MichelineSchemaError:
+        except Exception:
             exit(-1)
 
     if dry_run:

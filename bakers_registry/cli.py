@@ -2,7 +2,7 @@ import sys
 import fire
 import simplejson as json
 from pprint import pformat
-from pytezos import RpcError
+from pytezos.rpc.errors import RpcError
 
 from bakers_registry.encoding import decode_info, encode_info
 from bakers_registry.colored import PrinterJSON, PrinterLog

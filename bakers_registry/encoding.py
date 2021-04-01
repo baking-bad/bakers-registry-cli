@@ -15,7 +15,7 @@ def decode_split(value):
 
 
 def decode_hex(value):
-    return bytes.fromhex(value).decode()
+    return value.decode()
 
 
 def decode_info(info):
@@ -56,9 +56,9 @@ def decode_info(info):
 
 def try_hex_encode(data):
     if re.match('^[0-9a-f]$', data) and len(data) % 2 == 0:
-        return data
+        return bytes.fromhex(data)
     else:
-        return data.encode().hex()
+        return data.encode()
 
 
 def encode_config_mask(data, default):
