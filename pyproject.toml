@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bakers-registry"
-version = "0.2.0"
+version = "0.2.1"
 license = "MIT"
 description = "Command line interface for the Tezos Bakers Registry"
 authors = ["Michael Zaikin <mz@baking-bad.org>"]
